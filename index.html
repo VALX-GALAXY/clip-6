@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clipper AI - Viral Shorts & Reels Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Clipper<strong>AI</strong></span>
+        <span class="badge free-badge">Free Tier</span>
+      </div>
+      <div class="nav-actions">
+        <button id="configBtn" class="btn-secondary" title="Configure Backend URL">
+          <span class="status-dot connected" id="apiStatusDot"></span>
+          <span id="backendLabel">Localhost:8000</span>
+          <span class="gear-icon">⚙️</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="pill-tag">✨ Powered by Google Gemini AI & Whisper</div>
+      <h1 class="hero-title">Turn Long Videos Into <span class="gradient-text">Viral 9:16 Clips</span></h1>
+      <p class="hero-subtitle">
+        Automatically detect high-retention hooks, reframe to vertical 9:16, and burn animated karaoke subtitles for TikTok, Reels & YouTube Shorts.
+      </p>
+    </section>
+
+    <!-- Generator Card -->
+    <section class="card form-card">
+      <form id="clipForm">
+        <div class="input-group">
+          <label for="videoUrl">Video URL or Local Path</label>
+          <div class="url-input-wrapper">
+            <span class="url-icon">🔗</span>
+            <input 
+              type="text" 
+              id="videoUrl" 
+              placeholder="Paste YouTube video URL (e.g. https://www.youtube.com/watch?v=...)" 
+              required 
+              autocomplete="off"
+            />
+            <button type="button" id="pasteBtn" class="btn-paste" title="Paste from clipboard">Paste</button>
+          </div>
+        </div>
+
+        <!-- Settings Options -->
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label for="clipsCount">Number of Clips</label>
+            <div class="pill-selector" id="clipsSelector">
+              <button type="button" class="pill-btn" data-val="1">1</button>
+              <button type="button" class="pill-btn active" data-val="3">3</button>
+              <button type="button" class="pill-btn" data-val="5">5</button>
+              <button type="button" class="pill-btn" data-val="8">8</button>
+            </div>
+            <input type="hidden" id="clipsCount" value="3">
+          </div>
+
+          <div class="setting-item">
+            <label>Clip Duration (Seconds)</label>
+            <div class="range-inputs">
+              <div class="range-sub">
+                <span>Min:</span>
+                <input type="number" id="minDuration" value="20" min="10" max="120">s
+              </div>
+              <div class="range-sub">
+                <span>Max:</span>
+                <input type="number" id="maxDuration" value="60" min="15" max="180">s
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label for="whisperModel">Whisper Model</label>
+            <select id="whisperModel" class="custom-select">
+              <option value="tiny" selected>⚡ Tiny (Blazing Fast - Recommended)</option>
+              <option value="base">⚖️ Base (Standard Balance)</option>
+              <option value="small">🎯 Small (High Accuracy - Slower)</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-primary">
+          <span class="btn-text">Generate Viral Clips</span>
+          <span class="btn-icon">🚀</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Progress & Status Section -->
+    <section id="progressSection" class="card progress-card hidden">
+      <div class="progress-header">
+        <div class="spinner"></div>
+        <div>
+          <h3 id="progressTitle">Processing your video...</h3>
+          <p id="progressSubtitle" class="status-text">Starting pipeline...</p>
+        </div>
+        <span id="progressPercent" class="progress-pct">0%</span>
+      </div>
+
+      <div class="progress-bar-container">
+        <div id="progressBar" class="progress-bar-fill"></div>
+      </div>
+
+      <!-- Pipeline Steps Indicator -->
+      <div class="pipeline-steps">
+        <div class="step-badge" id="step-ingest">
+          <span class="step-num">1</span>
+          <span>Download</span>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-badge" id="step-transcribe">
+          <span class="step-num">2</span>
+          <span>Transcribe</span>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-badge" id="step-detect">
+          <span class="step-num">3</span>
+          <span>Gemini AI</span>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-badge" id="step-render">
+          <span class="step-num">4</span>
+          <span>Render 9:16</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error Banner -->
+    <div id="errorBanner" class="error-banner hidden">
+      <span class="error-icon">⚠️</span>
+      <span id="errorMessage">An error occurred</span>
+      <button type="button" id="dismissErrorBtn" class="btn-close">×</button>
+    </div>
+
+    <!-- Results Section -->
+    <section id="resultsSection" class="results-section hidden">
+      <div class="results-header">
+        <div>
+          <h2>🎬 Your Generated Clips</h2>
+          <p id="resultsCount">Found viral moments with karaoke subtitles</p>
+        </div>
+        <button id="downloadAllBtn" class="btn-secondary">Download All</button>
+      </div>
+
+      <div id="clipsGrid" class="clips-grid">
+        <!-- Clip cards will be injected dynamically -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Backend Settings Modal -->
+  <div id="settingsModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Backend API Settings</h3>
+        <button id="closeModalBtn" class="btn-close">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          When deployed on <strong>Netlify</strong>, set this to your cloud backend URL (e.g., from Hugging Face Spaces or Render). For local testing, use <code>http://localhost:8000</code>.
+        </p>
+        <div class="input-group">
+          <label for="backendUrlInput">Backend API URL</label>
+          <input type="url" id="backendUrlInput" placeholder="http://localhost:8000" />
+        </div>
+        <div class="status-check">
+          <button type="button" id="testApiBtn" class="btn-secondary">Test Connection</button>
+          <span id="apiTestResult" class="test-result"></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="saveBackendBtn" class="btn-primary">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
