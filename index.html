@@ -3,26 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clipper AI - Viral Shorts & Reels Generator</title>
+  <title>VA Clipper AI - Viral 9:16 Shorts & Reels Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Header -->
+  <!-- Ambient background glow elements -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <!-- Navbar -->
   <header class="navbar">
     <div class="nav-container">
       <div class="logo">
-        <span class="logo-icon">⚡</span>
-        <span class="logo-text">Clipper<strong>AI</strong></span>
-        <span class="badge free-badge">Free Tier</span>
+        <div class="logo-mark">VA</div>
+        <div class="logo-text-group">
+          <span class="logo-text">VA Clipper</span>
+          <span class="logo-ai-pill">AI</span>
+        </div>
       </div>
+
       <div class="nav-actions">
-        <button id="configBtn" class="btn-secondary" title="Configure Backend URL">
+        <div class="server-status-pill" id="serverStatusBadge">
           <span class="status-dot connected" id="apiStatusDot"></span>
-          <span id="backendLabel">Localhost:8000</span>
-          <span class="gear-icon">⚙️</span>
+          <span class="status-name" id="backendLabel">VA Cloud Engine</span>
+          <span class="status-live-tag">LIVE</span>
+        </div>
+        <button id="configBtn" class="btn-icon-gear" title="Connection Settings" aria-label="Settings">
+          ⚙️
         </button>
       </div>
     </div>
@@ -32,35 +43,61 @@
   <main class="main-content">
     <!-- Hero Section -->
     <section class="hero-section">
-      <div class="pill-tag">✨ Powered by Google Gemini AI & Whisper</div>
-      <h1 class="hero-title">Turn Long Videos Into <span class="gradient-text">Viral 9:16 Clips</span></h1>
+      <div class="pill-tag">
+        <span class="sparkle">✨</span> AI-Powered Short-Form Studio • 9:16 Vertical Reframe
+      </div>
+      <h1 class="hero-title">
+        Turn Long Content Into <span class="gradient-text">Viral 9:16 Clips</span>
+      </h1>
       <p class="hero-subtitle">
-        Automatically detect high-retention hooks, reframe to vertical 9:16, and burn animated karaoke subtitles for TikTok, Reels & YouTube Shorts.
+        Automatically detect high-retention hooks, reframe horizontal video to vertical 9:16, and burn synchronized karaoke subtitles ready for TikTok, Instagram Reels & YouTube Shorts.
       </p>
+
+      <!-- Value Props Pills -->
+      <div class="features-row">
+        <div class="feature-chip">
+          <span class="chip-icon">🎯</span> Viral Hook Detection
+        </div>
+        <div class="feature-chip">
+          <span class="chip-icon">💬</span> Animated Karaoke Subs
+        </div>
+        <div class="feature-chip">
+          <span class="chip-icon">📱</span> Smart 9:16 Center Crop
+        </div>
+        <div class="feature-chip">
+          <span class="chip-icon">🔊</span> Broadcast Audio Boost
+        </div>
+      </div>
     </section>
 
     <!-- Generator Card -->
     <section class="card form-card">
+      <div class="card-glow-border"></div>
       <form id="clipForm">
         <div class="input-group">
-          <label for="videoUrl">Video URL or Local Path</label>
+          <div class="input-header">
+            <label for="videoUrl">Video URL or Source Link</label>
+            <span class="input-hint">Supports YouTube, Vimeo, Twitch & Direct MP4</span>
+          </div>
           <div class="url-input-wrapper">
             <span class="url-icon">🔗</span>
             <input 
               type="text" 
               id="videoUrl" 
-              placeholder="Paste YouTube video URL (e.g. https://www.youtube.com/watch?v=...)" 
+              placeholder="Paste video link (e.g. https://www.youtube.com/watch?v=...)" 
               required 
               autocomplete="off"
             />
-            <button type="button" id="pasteBtn" class="btn-paste" title="Paste from clipboard">Paste</button>
+            <button type="button" id="pasteBtn" class="btn-paste" title="Paste from clipboard">
+              <span>📋 Paste</span>
+            </button>
           </div>
         </div>
 
         <!-- Settings Options -->
         <div class="settings-grid">
           <div class="setting-item">
-            <label for="clipsCount">Number of Clips</label>
+            <label for="clipsCount">Clips to Generate</label>
             <div class="pill-selector" id="clipsSelector">
               <button type="button" class="pill-btn" data-val="1">1</button>
               <button type="button" class="pill-btn active" data-val="3">3</button>
@@ -71,32 +108,34 @@
           </div>
 
           <div class="setting-item">
-            <label>Clip Duration (Seconds)</label>
+            <label>Clip Duration</label>
             <div class="range-inputs">
               <div class="range-sub">
-                <span>Min:</span>
-                <input type="number" id="minDuration" value="20" min="10" max="120">s
+                <span class="range-label">Min</span>
+                <input type="number" id="minDuration" value="20" min="10" max="120">
+                <span class="range-unit">sec</span>
               </div>
               <div class="range-sub">
-                <span>Max:</span>
-                <input type="number" id="maxDuration" value="60" min="15" max="180">s
+                <span class="range-label">Max</span>
+                <input type="number" id="maxDuration" value="60" min="15" max="180">
+                <span class="range-unit">sec</span>
               </div>
             </div>
           </div>
 
           <div class="setting-item">
-            <label for="whisperModel">Whisper Model</label>
+            <label for="whisperModel">Audio Processing Speed</label>
             <select id="whisperModel" class="custom-select">
-              <option value="tiny" selected>⚡ Tiny (Blazing Fast - Recommended)</option>
-              <option value="base">⚖️ Base (Standard Balance)</option>
-              <option value="small">🎯 Small (High Accuracy - Slower)</option>
+              <option value="tiny" selected>⚡ Ultra Fast (Recommended)</option>
+              <option value="base">⚖️ Balanced</option>
+              <option value="small">🎯 High Precision</option>
             </select>
           </div>
         </div>
 
         <button type="submit" id="submitBtn" class="btn-primary">
-          <span class="btn-text">Generate Viral Clips</span>
-          <span class="btn-icon">🚀</span>
+          <span class="btn-text">Generate Viral 9:16 Clips</span>
+          <span class="btn-arrow">→</span>
         </button>
       </form>
     </section>
@@ -104,12 +143,17 @@
     <!-- Progress & Status Section -->
     <section id="progressSection" class="card progress-card hidden">
       <div class="progress-header">
-        <div class="spinner"></div>
-        <div>
-          <h3 id="progressTitle">Processing your video...</h3>
-          <p id="progressSubtitle" class="status-text">Starting pipeline...</p>
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <div class="spinner-glow"></div>
         </div>
-        <span id="progressPercent" class="progress-pct">0%</span>
+        <div class="progress-text-block">
+          <h3 id="progressTitle">Analyzing video content...</h3>
+          <p id="progressSubtitle" class="status-text">Starting high-speed processing pipeline...</p>
+        </div>
+        <div class="progress-pct-badge">
+          <span id="progressPercent" class="progress-pct">0%</span>
+        </div>
       </div>
 
       <div class="progress-bar-container">
@@ -120,22 +164,22 @@
       <div class="pipeline-steps">
         <div class="step-badge" id="step-ingest">
           <span class="step-num">1</span>
-          <span>Download</span>
+          <span class="step-title">Ingest</span>
         </div>
-        <div class="step-arrow">→</div>
+        <div class="step-arrow">›</div>
         <div class="step-badge" id="step-transcribe">
           <span class="step-num">2</span>
-          <span>Transcribe</span>
+          <span class="step-title">Transcribe</span>
         </div>
-        <div class="step-arrow">→</div>
+        <div class="step-arrow">›</div>
         <div class="step-badge" id="step-detect">
           <span class="step-num">3</span>
-          <span>Gemini AI</span>
+          <span class="step-title">Hook AI</span>
         </div>
-        <div class="step-arrow">→</div>
+        <div class="step-arrow">›</div>
         <div class="step-badge" id="step-render">
           <span class="step-num">4</span>
-          <span>Render 9:16</span>
+          <span class="step-title">9:16 Render</span>
         </div>
       </div>
     </section>
@@ -143,48 +187,61 @@
     <!-- Error Banner -->
     <div id="errorBanner" class="error-banner hidden">
       <span class="error-icon">⚠️</span>
-      <span id="errorMessage">An error occurred</span>
-      <button type="button" id="dismissErrorBtn" class="btn-close">×</button>
+      <span id="errorMessage">An error occurred during processing.</span>
+      <button type="button" id="dismissErrorBtn" class="btn-close" aria-label="Dismiss error">×</button>
     </div>
 
     <!-- Results Section -->
     <section id="resultsSection" class="results-section hidden">
       <div class="results-header">
         <div>
-          <h2>🎬 Your Generated Clips</h2>
-          <p id="resultsCount">Found viral moments with karaoke subtitles</p>
+          <div class="results-tag">⚡ VA Production Ready</div>
+          <h2>Generated 9:16 Clips</h2>
+          <p id="resultsCount">Auto-framed vertical cuts with burned animated subtitles</p>
         </div>
-        <button id="downloadAllBtn" class="btn-secondary">Download All</button>
+        <button id="downloadAllBtn" class="btn-secondary">
+          <span>⬇️ Download All Clips</span>
+        </button>
       </div>
 
       <div id="clipsGrid" class="clips-grid">
-        <!-- Clip cards will be injected dynamically -->
+        <!-- Clip cards injected dynamically -->
       </div>
     </section>
   </main>
 
-  <!-- Backend Settings Modal -->
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-logo">VA Clipper <span>AI</span></div>
+      <p class="footer-copy">Next-Gen Short-Form Video Automation Studio</p>
+    </div>
+  </footer>
+
+  <!-- Backend Settings Modal (Optional override, hidden by default) -->
   <div id="settingsModal" class="modal-backdrop hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>Backend API Settings</h3>
+        <h3>VA Cloud Connection</h3>
         <button id="closeModalBtn" class="btn-close">×</button>
       </div>
       <div class="modal-body">
         <p class="modal-desc">
-          When deployed on <strong>Netlify</strong>, set this to your cloud backend URL (e.g., from Hugging Face Spaces or Render). For local testing, use <code>http://localhost:8000</code>.
+          Default connection is pre-configured to your high-performance backend:
+          <code>https://clip6-backend.onrender.com</code>.
         </p>
         <div class="input-group">
-          <label for="backendUrlInput">Backend API URL</label>
-          <input type="url" id="backendUrlInput" placeholder="http://localhost:8000" />
+          <label for="backendUrlInput">Backend Service Endpoint</label>
+          <input type="url" id="backendUrlInput" placeholder="https://clip6-backend.onrender.com" />
         </div>
         <div class="status-check">
-          <button type="button" id="testApiBtn" class="btn-secondary">Test Connection</button>
+          <button type="button" id="testApiBtn" class="btn-secondary">Check Connection</button>
           <span id="apiTestResult" class="test-result"></span>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" id="saveBackendBtn" class="btn-primary">Save & Apply</button>
+        <button type="button" id="resetBackendBtn" class="btn-ghost">Reset Default</button>
+        <button type="button" id="saveBackendBtn" class="btn-primary-small">Save & Apply</button>
       </div>
     </div>
   </div>
@@ -192,4 +249,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-

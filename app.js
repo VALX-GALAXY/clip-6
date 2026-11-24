@@ -1,9 +1,12 @@
-// Clipper AI - Frontend Controller
+// VA Clipper AI - Frontend Controller
 
-// Default to current host if served together, otherwise localhost:8000
-const DEFAULT_BACKEND = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+// Pre-configured default backend URL
+const RENDER_BACKEND = 'https://clip6-backend.onrender.com';
+
+// Use local origin if testing locally, otherwise default to clip6-backend.onrender.com
+const DEFAULT_BACKEND = (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1'))
   ? window.location.origin
-  : 'http://localhost:8000';
+  : RENDER_BACKEND;
 
 let BACKEND_URL = localStorage.getItem('clipper_backend_url') || DEFAULT_BACKEND;
 let currentJobId = null;
@@ -49,6 +52,7 @@ const backendUrlInput = document.getElementById('backendUrlInput');
 const testApiBtn = document.getElementById('testApiBtn');
 const apiTestResult = document.getElementById('apiTestResult');
 const saveBackendBtn = document.getElementById('saveBackendBtn');
+const resetBackendBtn = document.getElementById('resetBackendBtn');
 const backendLabel = document.getElementById('backendLabel');
 const apiStatusDot = document.getElementById('apiStatusDot');
 
@@ -62,25 +66,34 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateBackendDisplay() {
   try {
     const urlObj = new URL(BACKEND_URL);
-    backendLabel.textContent = urlObj.host;
+    if (urlObj.hostname.includes('render.com')) {
+      backendLabel.textContent = 'clip6-backend (Render)';
+    } else {
+      backendLabel.textContent = urlObj.host;
+    }
   } catch (e) {
-    backendLabel.textContent = BACKEND_URL;
+    backendLabel.textContent = 'VA Cloud Engine';
   }
 }
 
 async function checkBackendHealth() {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/health`, { method: 'GET' });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`${BACKEND_URL}/api/health`, { method: 'GET', signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (res.ok) {
       apiStatusDot.className = 'status-dot connected';
-      apiStatusDot.title = 'Connected to Backend';
+      apiStatusDot.title = 'Connected to VA Cloud Engine';
     } else {
-      apiStatusDot.className = 'status-dot disconnected';
-      apiStatusDot.title = 'Backend returned error';
+      apiStatusDot.className = 'status-dot sleeping';
+      apiStatusDot.title = 'Backend is starting up...';
     }
   } catch (err) {
-    apiStatusDot.className = 'status-dot disconnected';
-    apiStatusDot.title = 'Cannot reach backend server';
+    // If Render is sleeping or cold-starting, indicate standby
+    apiStatusDot.className = 'status-dot standby';
+    apiStatusDot.title = 'VA Backend Ready (Will wake on request)';
   }
 }
 
@@ -99,7 +112,7 @@ function setupEventListeners() {
     try {
       const text = await navigator.clipboard.readText();
       if (text) {
-        videoUrlInput.value = text;
+        videoUrlInput.value = text.trim();
         videoUrlInput.focus();
       }
     } catch (err) {
@@ -129,9 +142,9 @@ function setupEventListeners() {
 
   // Test backend connection in modal
   testApiBtn.addEventListener('click', async () => {
-    apiTestResult.textContent = 'Testing...';
+    apiTestResult.textContent = 'Testing connection...';
     apiTestResult.className = 'test-result';
-    const targetUrl = backendUrlInput.value.trim().replace(/\/$/, '');
+    const targetUrl = backendUrlInput.value.trim().replace(/\/$/, '') || RENDER_BACKEND;
     try {
       const res = await fetch(`${targetUrl}/api/health`);
       if (res.ok) {
@@ -143,15 +156,28 @@ function setupEventListeners() {
         apiTestResult.className = 'test-result error';
       }
     } catch (err) {
-      apiTestResult.textContent = 'Failed to connect. Check URL & CORS.';
-      apiTestResult.className = 'test-result error';
+      apiTestResult.textContent = 'Standby or waking up. Check URL & network.';
+      apiTestResult.className = 'test-result warning';
     }
   });
+
+  // Reset to default Render backend
+  if (resetBackendBtn) {
+    resetBackendBtn.addEventListener('click', () => {
+      backendUrlInput.value = RENDER_BACKEND;
+      BACKEND_URL = RENDER_BACKEND;
+      localStorage.setItem('clipper_backend_url', BACKEND_URL);
+      updateBackendDisplay();
+      checkBackendHealth();
+      apiTestResult.textContent = 'Reset to clip6-backend.onrender.com';
+      apiTestResult.className = 'test-result success';
+    });
+  }
 
   // Save backend URL
   saveBackendBtn.addEventListener('click', () => {
     let newUrl = backendUrlInput.value.trim().replace(/\/$/, '');
-    if (!newUrl) newUrl = DEFAULT_BACKEND;
+    if (!newUrl) newUrl = RENDER_BACKEND;
     BACKEND_URL = newUrl;
     localStorage.setItem('clipper_backend_url', BACKEND_URL);
     updateBackendDisplay();
@@ -174,7 +200,7 @@ async function handleFormSubmit(e) {
   progressSection.classList.remove('hidden');
   submitBtn.disabled = true;
 
-  updateProgressUI(5, 'Submitting video to Clipper AI...', 'Starting...');
+  updateProgressUI(5, 'Connecting to VA Clipper Cloud...', 'Starting pipeline...');
   resetStepBadges();
 
   const payload = {
@@ -194,7 +220,7 @@ async function handleFormSubmit(e) {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || `Server error (HTTP ${res.status})`);
+      throw new Error(errData.detail || `Server returned error (HTTP ${res.status})`);
     }
 
     const data = await res.json();
@@ -202,7 +228,7 @@ async function handleFormSubmit(e) {
     startPolling(currentJobId);
 
   } catch (err) {
-    showError(err.message || 'Failed to communicate with backend. Verify backend is running.');
+    showError(err.message || 'Cannot reach VA Backend. If Render just woke up, wait 30 seconds and retry.');
     progressSection.classList.add('hidden');
     submitBtn.disabled = false;
   }
@@ -247,15 +273,15 @@ function updateProgressUI(pct, stepMsg, status) {
   progressSubtitle.textContent = stepMsg || 'Processing...';
 
   if (pct < 30) {
-    progressTitle.textContent = '1/4 Downloading & Ingesting Video...';
+    progressTitle.textContent = '1/4 Ingesting & Downloading Source Stream...';
   } else if (pct < 60) {
-    progressTitle.textContent = '2/4 Transcribing Audio with Whisper...';
+    progressTitle.textContent = '2/4 High-Speed Audio Transcription...';
   } else if (pct < 80) {
-    progressTitle.textContent = '3/4 Detecting Viral Moments with Gemini AI...';
+    progressTitle.textContent = '3/4 AI Hook & Virality Scoring...';
   } else if (pct < 100) {
-    progressTitle.textContent = '4/4 Rendering 9:16 Vertical Clips & Subtitles...';
+    progressTitle.textContent = '4/4 Rendering Parallel 9:16 Vertical Cuts...';
   } else {
-    progressTitle.textContent = '✨ Complete! Clips Ready';
+    progressTitle.textContent = '✨ VA Clipper Ready! Clips Generated';
   }
 }
 
@@ -292,7 +318,7 @@ function renderResults(clips) {
     return;
   }
 
-  resultsCount.textContent = `Generated ${clips.length} viral 9:16 clips with animated karaoke subtitles`;
+  resultsCount.textContent = `Generated ${clips.length} viral 9:16 vertical cuts with synchronized karaoke subtitles`;
 
   clips.forEach(clip => {
     const card = document.createElement('div');
@@ -302,7 +328,7 @@ function renderResults(clips) {
 
     card.innerHTML = `
       <div class="video-container">
-        <span class="score-badge">🔥 ${clip.score}/100</span>
+        <span class="score-badge">🔥 ${clip.score}% Virality</span>
         <span class="duration-badge">${clip.duration}s</span>
         <video controls playsinline preload="metadata">
           <source src="${videoSrc}" type="video/mp4">
@@ -312,12 +338,16 @@ function renderResults(clips) {
       <div class="clip-details">
         <div class="clip-badges-row">
           <span class="audio-badge">🔊 High-Quality Audio</span>
+          <span class="format-badge">9:16 Vertical</span>
         </div>
         <h4 class="clip-title">${escapeHtml(clip.title)}</h4>
         <p class="clip-hook">"${escapeHtml(clip.hook || 'High retention viral moment')}"</p>
-        <a href="${videoSrc}" download="${clip.filename}" class="btn-download" target="_blank">
-          <span>⬇️ Download Clip (.mp4)</span>
-        </a>
+        <div class="clip-actions">
+          <a href="${videoSrc}" download="${clip.filename}" class="btn-download" target="_blank">
+            <span>⬇️ Download MP4</span>
+          </a>
+          <button type="button" class="btn-copy-hook" title="Copy Hook Quote">📋</button>
+        </div>
       </div>
     `;
 
@@ -327,6 +357,17 @@ function renderResults(clips) {
       videoEl.addEventListener('play', () => {
         videoEl.muted = false;
         videoEl.volume = 1.0;
+      });
+    }
+
+    const copyBtn = card.querySelector('.btn-copy-hook');
+    if (copyBtn && clip.hook) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(clip.hook);
+          copyBtn.textContent = '✅';
+          setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+        } catch (e) {}
       });
     }
 
@@ -366,4 +407,3 @@ function escapeHtml(str) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   })[m]);
 }
-
